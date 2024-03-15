@@ -11,9 +11,10 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
-  posts Post[]
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  password String?
+  posts    Post[]
 
   @@map("USER")
 }
