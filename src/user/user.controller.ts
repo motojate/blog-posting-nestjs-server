@@ -1,7 +1,22 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { JwtAuthGuard } from 'src/public/guards/jwt-auth.guard';
+import { Request as ExpressRequest } from 'express';
 
+interface IUserRequest {
+  user: {
+    id: number;
+  };
+}
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -16,9 +31,11 @@ export class UserController {
     return this.userService.findUserByEmail(email);
   }
 
-  // 해당 컨트롤러는 모든 유저 데이터를 가지고 오는 내용이니, 이번에만 사용하고 추후 제거하도록 하겠습니다.
-  @Get('list')
-  async findUserList() {
-    return this.userService.findUserList();
+  @UseGuards(JwtAuthGuard)
+  @Get('name')
+  async getUserName(@Req() req: ExpressRequest & IUserRequest) {
+    const id = req.user.id;
+
+    return this.userService.findUserName(id);
   }
 }
