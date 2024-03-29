@@ -11,11 +11,12 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  name     String
-  password String?
-  posts    Post[]
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  name         String
+  password     String?
+  posts        Post[]
+  refreshToken RefreshToken?
 
   @@map("USER")
 }
@@ -28,4 +29,13 @@ model Post {
   user    User    @relation(fields: [userId], references: [id])
 
   @@map("POST")
+}
+
+model RefreshToken {
+  token    String  @id @unique
+  isRevoke Boolean @default(false) @map("is_revoke")
+  userId   Int     @unique @map("user_id")
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("REFRESH_TOKEN")
 }
