@@ -11,12 +11,32 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  private createToken(id: number, option?: { expiresIn: string }): string {
+  /**
+   * 토큰을 생성합니다.
+   * @param id 데이터베이스 내 유저의 id 값
+   * @param option 토큰의 유효기간
+   * @returns string형 토큰값
+   */
+  private createToken(id: number, option?: { expiresIn: string }) {
     const payload = { id };
     return this.jwtService.sign(payload, option);
   }
 
-  async login(loginDto: LoginDto): Promise<string> {
+  /**
+   * 리프레시 토큰을 저장합니다.
+   * @param token 토큰 값
+   * @param userId 데이터베이스 내 유저의 id 값
+   */
+  private saveRefreshToken(token: string, userId: number) {
+    return this.prisma.refreshToken.create({
+      data: {
+        token,
+        userId,
+      },
+    });
+  }
+
+  async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -27,6 +47,17 @@ export class AuthService {
     const isVerifyPassword = bcrypt.compare(password, user.password);
     if (!isVerifyPassword) throw new Error('비밀번호가 일치하지 않습니다.');
 
-    return this.createToken(user.id);
+    const accessToken = this.createToken(user.id);
+
+    // 리프레시 토큰 생성 로직 추가. 유효기간 15일
+    const refreshToken = this.createToken(user.id, { expiresIn: '15d' });
+
+    // 리프레시 토큰 db에 저장 로직 추가.
+    await this.saveRefreshToken(refreshToken, user.id);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 }
