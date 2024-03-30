@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy } from 'passport-jwt';
@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: (req: Request) => {
         const token = req.cookies['access_token'];
-        if (!token) throw new Error('토큰이 없습니다.');
+        if (!token) throw new ForbiddenException('토큰이 없습니다.');
         else return token;
       },
       ignoreExpiration: false,
