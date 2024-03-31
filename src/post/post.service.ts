@@ -30,27 +30,36 @@ export class PostService {
 
   async updatePost(updatePostDto: UpdatePostDto) {
     const { userId, postId, content } = updatePostDto;
-    const updatedPost = await this.prisma.post.update({
-      where: {
-        userId,
-        id: postId,
-      },
-      data: {
-        content,
-      },
+
+    return this.prisma.$transaction(async (tx) => {
+      const post = await tx.post.findUnique({
+        where: { id: postId },
+        select: { userId: true },
+      });
+
+      if (!post || post.userId !== userId)
+        throw new ForbiddenException('접근 권한이 없습니다.');
+
+      return tx.post.update({
+        where: { id: postId },
+        data: { content },
+      });
     });
-    if (!updatedPost) throw new ForbiddenException('권한이 없습니다.');
-    else return updatedPost;
   }
 
   async deletePost(userId: number, postId: number) {
-    const deletedPost = await this.prisma.post.delete({
-      where: {
-        userId,
-        id: postId,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const post = await tx.post.findUnique({
+        where: { id: postId },
+        select: { userId: true },
+      });
+
+      if (!post || post.userId !== userId)
+        throw new ForbiddenException('접근 권한이 없습니다.');
+
+      return tx.post.delete({
+        where: { id: postId },
+      });
     });
-    if (!deletedPost) throw new ForbiddenException('권한이 없습니다.');
-    else return deletedPost;
   }
 }
