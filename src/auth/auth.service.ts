@@ -23,15 +23,21 @@ export class AuthService {
   }
 
   /**
-   * 리프레시 토큰을 저장합니다.
+   * 리프레시 토큰을 저장하거나 갱신합니다.
    * @param token 토큰 값
    * @param userId 데이터베이스 내 유저의 id 값
    */
-  private saveRefreshToken(token: string, userId: number) {
-    return this.prisma.refreshToken.create({
-      data: {
+  private upsertRefreshToken(token: string, userId: number) {
+    return this.prisma.refreshToken.upsert({
+      where: {
+        userId,
+      },
+      create: {
         token,
         userId,
+      },
+      update: {
+        token,
       },
     });
   }
@@ -53,7 +59,7 @@ export class AuthService {
     const refreshToken = this.createToken(user.id, { expiresIn: '15d' });
 
     // 리프레시 토큰 db에 저장 로직 추가.
-    await this.saveRefreshToken(refreshToken, user.id);
+    await this.upsertRefreshToken(refreshToken, user.id);
 
     return {
       accessToken,
