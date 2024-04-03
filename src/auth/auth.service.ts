@@ -42,6 +42,21 @@ export class AuthService {
     });
   }
 
+  private async getTokens(id: number) {
+    const accessToken = this.createToken(id);
+
+    // 리프레시 토큰 생성 로직 추가. 유효기간 15일
+    const refreshToken = this.createToken(id, { expiresIn: '15d' });
+
+    // 리프레시 토큰 db에 저장 로직 추가.
+    await this.upsertRefreshToken(refreshToken, id);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
     const user = await this.prisma.user.findUnique({
@@ -53,17 +68,21 @@ export class AuthService {
     const isVerifyPassword = bcrypt.compare(password, user.password);
     if (!isVerifyPassword) throw new Error('비밀번호가 일치하지 않습니다.');
 
-    const accessToken = this.createToken(user.id);
+    return this.getTokens(user.id);
+  }
 
-    // 리프레시 토큰 생성 로직 추가. 유효기간 15일
-    const refreshToken = this.createToken(user.id, { expiresIn: '15d' });
+  async refreshToken(id: number) {
+    return this.getTokens(id);
+  }
 
-    // 리프레시 토큰 db에 저장 로직 추가.
-    await this.upsertRefreshToken(refreshToken, user.id);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+  async revokeRefreshToken(token: string) {
+    return this.prisma.refreshToken.update({
+      where: {
+        token,
+      },
+      data: {
+        isRevoke: true,
+      },
+    });
   }
 }
