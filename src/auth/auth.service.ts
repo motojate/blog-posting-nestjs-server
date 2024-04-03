@@ -74,4 +74,15 @@ export class AuthService {
   async refreshToken(id: number) {
     return this.getTokens(id);
   }
+
+  async revokeRefreshToken(token: string) {
+    return this.prisma.refreshToken.update({
+      where: {
+        token,
+      },
+      data: {
+        isRevoke: true,
+      },
+    });
+  }
 }
