@@ -19,4 +19,12 @@ export class AuthController {
     res.cookie('refresh_token', token.refreshToken, { httpOnly: true });
     res.send();
   }
+
+  @Post('logout')
+  @HttpCode(201)
+  async logout(@Res() res: ExpressResponse) {
+    res.cookie('access_token', '', { httpOnly: true, expires: new Date(0) });
+    res.cookie('refresh_token', '', { httpOnly: true, expires: new Date(0) });
+    res.send();
+  }
 }
