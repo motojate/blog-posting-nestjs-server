@@ -20,6 +20,10 @@ export class AuthController {
     res.send();
   }
 
+  /**
+   * 로그아웃 API
+   * @returns 토큰 초기화
+   */
   @Post('logout')
   @HttpCode(201)
   async logout(@Req() req: Request, @Res() res: ExpressResponse) {
