@@ -42,7 +42,7 @@ export class AuthService {
     });
   }
 
-  private async getTokens(id: number) {
+  async getTokens(id: number) {
     const accessToken = this.createToken(id);
 
     // 리프레시 토큰 생성 로직 추가. 유효기간 15일
