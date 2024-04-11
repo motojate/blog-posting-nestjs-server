@@ -44,6 +44,11 @@ export class AuthController {
     res.send();
   }
 
+  /**
+   * 토큰 재발급 API
+   * @param userId 쿠키에서 추출한 유저 인덱스.
+   */
+
   @Post('refresh')
   @UseGuards(JwtAuthGuard)
   @HttpCode(201)
